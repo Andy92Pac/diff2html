@@ -57,6 +57,8 @@ export function parse(diffInput: string, config: DiffParserConfig = {}): DiffFil
   let oldLine2: number | null = null; // Used for combined diff
   let newLine: number | null = null;
 
+  let currentPosition = 0;
+
   let possibleOldName: string | null = null;
   let possibleNewName: string | null = null;
 
@@ -139,6 +141,8 @@ export function parse(diffInput: string, config: DiffParserConfig = {}): DiffFil
       deletedLines: 0,
       addedLines: 0,
     };
+
+    currentPosition = 0;
   }
 
   function startBlock(line: string): void {
@@ -193,13 +197,14 @@ export function parse(diffInput: string, config: DiffParserConfig = {}): DiffFil
     };
   }
 
-  function createLine(line: string): void {
+  function createLine(line: string, position: number): void {
     if (currentFile === null || currentBlock === null || oldLine === null || newLine === null) return;
 
     // eslint-disable-next-line
     // @ts-ignore
     const currentLine: DiffLine = {
       content: line,
+      position: position,
     };
 
     const addedPrefixes = currentFile.isCombined ? ['+ ', ' +', '++'] : ['+'];
@@ -351,7 +356,7 @@ export function parse(diffInput: string, config: DiffParserConfig = {}): DiffFil
      * 3. Context line starts with: <SPACE>
      */
     if (currentBlock && (line.startsWith('+') || line.startsWith('-') || line.startsWith(' '))) {
-      createLine(line);
+      createLine(line, ++currentPosition);
       return;
     }
 

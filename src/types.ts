@@ -29,6 +29,7 @@ export interface DiffLineContext {
 
 export type DiffLineContent = {
   content: string;
+  position: number;
 };
 
 export type DiffLine = (DiffLineDeleted | DiffLineInserted | DiffLineContext) & DiffLineContent;
