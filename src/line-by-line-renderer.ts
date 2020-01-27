@@ -116,6 +116,7 @@ export default class LineByLineRenderer {
                 content: content,
                 oldNumber: line.oldNumber,
                 newNumber: line.newNumber,
+                position: line.position,
               });
             });
           } else if (oldLines.length || newLines.length) {
@@ -219,6 +220,7 @@ export default class LineByLineRenderer {
                   }),
               oldNumber: oldLine.oldNumber,
               newNumber: oldLine.newNumber,
+              position: oldLine.position,
             }
           : undefined;
 
@@ -237,6 +239,7 @@ export default class LineByLineRenderer {
                   }),
               oldNumber: newLine.oldNumber,
               newNumber: newLine.newNumber,
+              position: newLine.position,
             }
           : undefined;
 
@@ -270,6 +273,7 @@ export default class LineByLineRenderer {
       prefix: line.prefix === ' ' ? '&nbsp;' : line.prefix,
       content: line.content,
       lineNumber: lineNumberHtml,
+      position: line?.position,
     });
   }
 }
@@ -286,6 +290,7 @@ type DiffPreparedLine = {
   content: string;
   oldNumber?: number;
   newNumber?: number;
+  position: number;
 };
 
 type FileHtml = {

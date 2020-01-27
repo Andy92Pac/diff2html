@@ -117,12 +117,14 @@ export default class SideBySideRenderer {
                   prefix: prefix,
                   content: content,
                   number: line.oldNumber,
+                  position: line.position,
                 },
                 {
                   type: renderUtils.CSSLineClass.CONTEXT,
                   prefix: prefix,
                   content: content,
                   number: line.newNumber,
+                  position: line.position,
                 },
               );
               fileHtml.left += left;
@@ -242,6 +244,7 @@ export default class SideBySideRenderer {
                     type: renderUtils.toCSSClass(oldLine.type),
                   }),
               number: oldLine.oldNumber,
+              position: oldLine.position,
             }
           : undefined;
 
@@ -259,6 +262,7 @@ export default class SideBySideRenderer {
                     type: renderUtils.toCSSClass(newLine.type),
                   }),
               number: newLine.newNumber,
+              position: newLine.position,
             }
           : undefined;
 
@@ -288,6 +292,7 @@ export default class SideBySideRenderer {
       prefix: line?.prefix === ' ' ? '&nbsp;' : line?.prefix || '&nbsp;',
       content: line?.content || '&nbsp;',
       lineNumber: line?.number,
+      position: line?.position,
     });
   }
 }
@@ -303,6 +308,7 @@ type DiffPreparedLine = {
   prefix: string;
   content: string;
   number: number;
+  position: number;
 };
 
 type FileHtml = {
