@@ -91,6 +91,8 @@ export default class LineByLineRenderer {
       Rematch.newDistanceFn((e: DiffLine) => renderUtils.deconstructLine(e.content, file.isCombined).content),
     );
 
+    const fileName = renderUtils.filenameDiff(file);
+
     return file.blocks
       .map(block => {
         let lines = this.hoganUtils.render(genericTemplatesPath, 'block-header', {
@@ -103,24 +105,27 @@ export default class LineByLineRenderer {
         this.applyLineGroupping(block).forEach(([contextLines, oldLines, newLines]) => {
           if (oldLines.length && newLines.length && !contextLines.length) {
             this.applyRematchMatching(oldLines, newLines, matcher).map(([oldLines, newLines]) => {
-              const { left, right } = this.processChangedLines(file.isCombined, oldLines, newLines);
+              const { left, right } = this.processChangedLines(file.isCombined, oldLines, newLines, fileName);
               lines += left;
               lines += right;
             });
           } else if (contextLines.length) {
             contextLines.forEach(line => {
               const { prefix, content } = renderUtils.deconstructLine(line.content, file.isCombined);
-              lines += this.generateSingleLineHtml({
-                type: renderUtils.CSSLineClass.CONTEXT,
-                prefix: prefix,
-                content: content,
-                oldNumber: line.oldNumber,
-                newNumber: line.newNumber,
-                position: line.position,
-              });
+              lines += this.generateSingleLineHtml(
+                {
+                  type: renderUtils.CSSLineClass.CONTEXT,
+                  prefix: prefix,
+                  content: content,
+                  oldNumber: line.oldNumber,
+                  newNumber: line.newNumber,
+                  position: line.position,
+                },
+                fileName,
+              );
             });
           } else if (oldLines.length || newLines.length) {
-            const { left, right } = this.processChangedLines(file.isCombined, oldLines, newLines);
+            const { left, right } = this.processChangedLines(file.isCombined, oldLines, newLines, fileName);
             lines += left;
             lines += right;
           } else {
@@ -189,7 +194,7 @@ export default class LineByLineRenderer {
     return doMatching ? matcher(oldLines, newLines) : [[oldLines, newLines]];
   }
 
-  processChangedLines(isCombined: boolean, oldLines: DiffLine[], newLines: DiffLine[]): FileHtml {
+  processChangedLines(isCombined: boolean, oldLines: DiffLine[], newLines: DiffLine[], path: string): FileHtml {
     const fileHtml = {
       right: '',
       left: '',
@@ -243,7 +248,7 @@ export default class LineByLineRenderer {
             }
           : undefined;
 
-      const { left, right } = this.generateLineHtml(preparedOldLine, preparedNewLine);
+      const { left, right } = this.generateLineHtml(preparedOldLine, preparedNewLine, path);
       fileHtml.left += left;
       fileHtml.right += right;
     }
@@ -251,14 +256,14 @@ export default class LineByLineRenderer {
     return fileHtml;
   }
 
-  generateLineHtml(oldLine?: DiffPreparedLine, newLine?: DiffPreparedLine): FileHtml {
+  generateLineHtml(oldLine?: DiffPreparedLine, newLine?: DiffPreparedLine, path?: string): FileHtml {
     return {
-      left: this.generateSingleLineHtml(oldLine),
-      right: this.generateSingleLineHtml(newLine),
+      left: this.generateSingleLineHtml(oldLine, path),
+      right: this.generateSingleLineHtml(newLine, path),
     };
   }
 
-  generateSingleLineHtml(line?: DiffPreparedLine): string {
+  generateSingleLineHtml(line?: DiffPreparedLine, path?: string): string {
     if (line === undefined) return '';
 
     const lineNumberHtml = this.hoganUtils.render(baseTemplatesPath, 'numbers', {
@@ -274,6 +279,7 @@ export default class LineByLineRenderer {
       content: line.content,
       lineNumber: lineNumberHtml,
       position: line?.position,
+      path: path,
     });
   }
 }

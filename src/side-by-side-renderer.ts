@@ -94,6 +94,8 @@ export default class SideBySideRenderer {
       Rematch.newDistanceFn((e: DiffLine) => renderUtils.deconstructLine(e.content, file.isCombined).content),
     );
 
+    const fileName = renderUtils.filenameDiff(file);
+
     return file.blocks
       .map(block => {
         const fileHtml = {
@@ -104,7 +106,7 @@ export default class SideBySideRenderer {
         this.applyLineGroupping(block).forEach(([contextLines, oldLines, newLines]) => {
           if (oldLines.length && newLines.length && !contextLines.length) {
             this.applyRematchMatching(oldLines, newLines, matcher).map(([oldLines, newLines]) => {
-              const { left, right } = this.processChangedLines(file.isCombined, oldLines, newLines);
+              const { left, right } = this.processChangedLines(file.isCombined, oldLines, newLines, fileName);
               fileHtml.left += left;
               fileHtml.right += right;
             });
@@ -126,12 +128,13 @@ export default class SideBySideRenderer {
                   number: line.newNumber,
                   position: line.position,
                 },
+                fileName,
               );
               fileHtml.left += left;
               fileHtml.right += right;
             });
           } else if (oldLines.length || newLines.length) {
-            const { left, right } = this.processChangedLines(file.isCombined, oldLines, newLines);
+            const { left, right } = this.processChangedLines(file.isCombined, oldLines, newLines, fileName);
             fileHtml.left += left;
             fileHtml.right += right;
           } else {
@@ -214,7 +217,7 @@ export default class SideBySideRenderer {
     });
   }
 
-  processChangedLines(isCombined: boolean, oldLines: DiffLine[], newLines: DiffLine[]): FileHtml {
+  processChangedLines(isCombined: boolean, oldLines: DiffLine[], newLines: DiffLine[], path: string): FileHtml {
     const fileHtml = {
       right: '',
       left: '',
@@ -266,7 +269,7 @@ export default class SideBySideRenderer {
             }
           : undefined;
 
-      const { left, right } = this.generateLineHtml(preparedOldLine, preparedNewLine);
+      const { left, right } = this.generateLineHtml(preparedOldLine, preparedNewLine, path);
       fileHtml.left += left;
       fileHtml.right += right;
     }
@@ -274,14 +277,14 @@ export default class SideBySideRenderer {
     return fileHtml;
   }
 
-  generateLineHtml(oldLine?: DiffPreparedLine, newLine?: DiffPreparedLine): FileHtml {
+  generateLineHtml(oldLine?: DiffPreparedLine, newLine?: DiffPreparedLine, path?: string): FileHtml {
     return {
-      left: this.generateSingleHtml(oldLine),
-      right: this.generateSingleHtml(newLine),
+      left: this.generateSingleHtml(oldLine, path),
+      right: this.generateSingleHtml(newLine, path),
     };
   }
 
-  generateSingleHtml(line?: DiffPreparedLine): string {
+  generateSingleHtml(line?: DiffPreparedLine, path?: string): string {
     const lineClass = 'd2h-code-side-linenumber';
     const contentClass = 'd2h-code-side-line';
 
@@ -293,6 +296,7 @@ export default class SideBySideRenderer {
       content: line?.content || '&nbsp;',
       lineNumber: line?.number,
       position: line?.position,
+      path: path,
     });
   }
 }
